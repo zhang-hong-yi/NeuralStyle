@@ -1,0 +1,6 @@
+model_checkpoint_path: "fast-style-model.ckpt-57000"
+all_model_checkpoint_paths: "fast-style-model.ckpt-53000"
+all_model_checkpoint_paths: "fast-style-model.ckpt-54000"
+all_model_checkpoint_paths: "fast-style-model.ckpt-55000"
+all_model_checkpoint_paths: "fast-style-model.ckpt-56000"
+all_model_checkpoint_paths: "fast-style-model.ckpt-57000"
