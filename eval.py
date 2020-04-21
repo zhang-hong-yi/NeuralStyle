@@ -17,8 +17,6 @@ FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
-
-    # Get image's height and width.
     height = 0
     width = 0
     with open(FLAGS.image_file, 'rb') as img:
@@ -40,28 +38,28 @@ def main(_):
                 is_training=False)
             image = reader.get_image(FLAGS.image_file, height, width, image_preprocessing_fn)
 
-            # Add batch dimension
+            # 增加一个维度
             image = tf.expand_dims(image, 0)
-
+            #加载网络
             generated = model.net(image, training=False)
             generated = tf.cast(generated, tf.uint8)
 
-            # Remove batch dimension
+            # 消去维度
             generated = tf.squeeze(generated, [0])
 
-            # Restore model variables.
+            # 加载参数
             saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V1)
+            # 初始化网络
             sess.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
-            # Use absolute path
+            
             FLAGS.model_file = os.path.abspath(FLAGS.model_file)
             saver.restore(sess, FLAGS.model_file)
 
-            # Make sure 'generated' directory exists.
             generated_file = 'generated/res.jpg'
             if os.path.exists('generated') is False:
                 os.makedirs('generated')
 
-            # Generate and write image data to file.
+            #获取 写入 图片到文件
             with open(generated_file, 'wb') as img:
                 start_time = time.time()
                 img.write(sess.run(tf.image.encode_jpeg(generated)))
@@ -72,5 +70,7 @@ def main(_):
 
 
 if __name__ == '__main__':
+    # 设置日志输出
     tf.logging.set_verbosity(tf.logging.INFO)
+    # 处理flag解析，然后执行main函数
     tf.app.run()

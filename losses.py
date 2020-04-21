@@ -53,39 +53,38 @@ def get_style_features(FLAGS):
         features = []
         for layer in FLAGS.style_layers:
             feature = endpoints_dict[layer]
-            feature = tf.squeeze(gram(feature), [0])  # remove the batch dimension
-            features.append(feature)
+            feature = tf.squeeze(gram(feature), [0])  # 删除批次维度
+            features.append(feature)    #获得需要的层的风格图像的数据
 
         with tf.Session() as sess:
-            # Restore variables for loss network.
+            # 取得损失网络的参数
             init_func = utils._get_init_fn(FLAGS)
             init_func(sess)
 
-            # Make sure the 'generated' directory is exists.
+            # 保存处理过的风格图片
             if os.path.exists('generated') is False:
                 os.makedirs('generated')
-            # Indicate cropped style image path
+           
             save_file = 'generated/target_style_' + FLAGS.naming + '.jpg'
-            # Write preprocessed style image to indicated path
+           
             with open(save_file, 'wb') as f:
                 target_image = image_unprocessing_fn(images[0, :])
                 value = tf.image.encode_jpeg(tf.cast(target_image, tf.uint8))
                 f.write(sess.run(value))
                 tf.logging.info('Target style pattern is saved to: %s.' % save_file)
 
-            # Return the features those layers are use for measuring style loss.
+            # #获得需要的层的风格图像的数据
             return sess.run(features)
 
 # 定义风格损失
-# endpoints_dict 损失网络各层结果
-#style_features_t 原始风格图片的层的激活
+# 原始图片和 生成图片的所有层合并的数组
+ #style_features_t 风格图片的层数据
 # style_layers 定义使用哪些层计算风格损失
 def style_loss(endpoints_dict, style_features_t, style_layers):
     style_loss = 0
     style_loss_summary = {} #tensorboard
     for style_gram, layer in zip(style_features_t, style_layers):
-        # 计算生成图片，只需要计算生成图片generated_images与目标风格
-        # 
+        # 计算生成图片，只计算生成图片generated_images与目标风格
         generated_images, _ = tf.split(endpoints_dict[layer], 2, 0)
         size = tf.size(generated_images)
         #计算损失

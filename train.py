@@ -22,16 +22,17 @@ def parse_args():
 
 
 def main(FLAGS):
-    style_features_t = losses.get_style_features(FLAGS)
+      # 返回这些图层用于测量样式丢失的特征。
+    style_features_t = losses.get_style_features(FLAGS) # 风格图像 层中的信息 用来计算损失   是个定值
 
-    # 得到训练结果保存的路径 没有就创建
+    # ckpt的路径 没有就创建
     training_path = os.path.join(FLAGS.model_path, FLAGS.naming)
     if not(os.path.exists(training_path)):
         os.makedirs(training_path)
 
     with tf.Graph().as_default():
         with tf.Session() as sess:
-            # 损失网络的函数
+            # 损失网络的函数   计算图像生成网络出来的图像的风格信息 内容信息  和 原始图像的内容信息
             network_fn = nets_factory.get_network_fn(
                 FLAGS.loss_model,
                 num_classes=1,
@@ -40,7 +41,7 @@ def main(FLAGS):
             image_preprocessing_fn, image_unprocessing_fn = preprocessing_factory.get_preprocessing(
                 FLAGS.loss_model,
                 is_training=False)
-            # 读入图像
+            # 读入coco数据集当成内容图片
             processed_images = reader.image(FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size,
                                             'train2014/', image_preprocessing_fn, epochs=FLAGS.epoch)
             # 引用图像生成网络 generated是生成的图像    训练这个网络  training=ture 
@@ -52,8 +53,8 @@ def main(FLAGS):
             processed_generated = tf.stack(processed_generated)
 
             # 将原始图像 生成图像送入损失网络中  合并两个图像加快计算速度
-            # 使用 endpoints_dict 计算损失 
             _, endpoints_dict = network_fn(tf.concat([processed_generated, processed_images], 0), spatial_squeeze=False)
+            # 使用 endpoints_dict 计算损失 
             
             # 记录损失网络的结构
             tf.logging.info('Loss network layers(You can define them in "content_layers" and "style_layers"):')
@@ -119,13 +120,13 @@ def main(FLAGS):
             init_func = utils._get_init_fn(FLAGS)
             init_func(sess)
 
-            # Restore variables for training model if the checkpoint file exists.
+            # 训练中断 重启时加载训练了一半的数据
             last_file = tf.train.latest_checkpoint(training_path)
             if last_file:
                 tf.logging.info('Restoring model from {}'.format(last_file))
                 saver.restore(sess, last_file)
 
-            """Start Training"""
+            # 开始训练
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(coord=coord)
             start_time = time.time()
@@ -135,16 +136,16 @@ def main(FLAGS):
                     elapsed_time = time.time() - start_time
                     start_time = time.time()
                     """logging"""
-                    # print(step)
+                    # 打印步数
                     if step % 10 == 0:
                         tf.logging.info('step: %d,  total Loss %f, secs/step: %f' % (step, loss_t, elapsed_time))
-                    """summary"""
+                    # tensorboard
                     if step % 25 == 0:
                         tf.logging.info('adding summary...')
                         summary_str = sess.run(summary)
                         writer.add_summary(summary_str, step)
                         writer.flush()
-                    """checkpoint"""
+                    #保存ckpt
                     if step % 1000 == 0:
                         saver.save(sess, os.path.join(training_path, 'fast-style-model.ckpt'), global_step=step)
             except tf.errors.OutOfRangeError:
