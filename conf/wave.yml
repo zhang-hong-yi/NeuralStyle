@@ -23,4 +23,4 @@ style_layers:  # use these layers for style loss
   - "vgg_16/conv3/conv3_3"
   - "vgg_16/conv4/conv4_3"
 checkpoint_exclude_scopes: "vgg_16/fc"  # we only use the convolution layers, so ignore fc layers.
-loss_model_file: "pretrained/vgg_16.ckpt"  # the path to the checkpoint
+loss_model_file: "../pretrained/vgg_16.ckpt"  # the path to the checkpoint

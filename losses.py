@@ -10,23 +10,23 @@ slim = tf.contrib.slim
 
 
 def gram(layer):
-    shape = tf.shape(layer)
+    shape = tf.shape(layer)   
     num_images = shape[0]
     width = shape[1]
     height = shape[2]
     num_filters = shape[3]
-    filters = tf.reshape(layer, tf.stack([num_images, -1, num_filters]))
+    filters = tf.reshape(layer, tf.stack([num_images, -1, num_filters]))  #把layer的w h合并
     grams = tf.matmul(filters, filters, transpose_a=True) / tf.to_float(width * height * num_filters)
 
     return grams
 
 
-def get_style_features(FLAGS):
     """
         处理风格图像：
-        一。将较短的边调整为FLAGS.image\u大小
+        一。将较短的边调整为FLAGS.image大小
         2。应用中心裁剪
     """
+def get_style_features(FLAGS):
     with tf.Graph().as_default():
         network_fn = nets_factory.get_network_fn(
             FLAGS.loss_model,
