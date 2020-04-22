@@ -9,7 +9,7 @@ import os
 slim = tf.contrib.slim
 
 
-def gram(layer):
+def gram(layer):  # gram矩阵实现  
     shape = tf.shape(layer)   
     num_images = shape[0]
     width = shape[1]
@@ -53,6 +53,7 @@ def get_style_features(FLAGS):
         features = []
         for layer in FLAGS.style_layers:
             feature = endpoints_dict[layer]
+            # tf.summary.image('style_features_t', feature)
             feature = tf.squeeze(gram(feature), [0])  # 删除批次维度
             features.append(feature)    #获得需要的层的风格图像的数据
 
@@ -87,7 +88,7 @@ def style_loss(endpoints_dict, style_features_t, style_layers):
         # 计算生成图片，只计算生成图片generated_images与目标风格
         generated_images, _ = tf.split(endpoints_dict[layer], 2, 0)
         size = tf.size(generated_images)
-        #计算损失
+        #计算损失 
         layer_style_loss = tf.nn.l2_loss(gram(generated_images) - style_gram) * 2 / tf.to_float(size)
         style_loss_summary[layer] = layer_style_loss
         style_loss += layer_style_loss

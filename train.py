@@ -11,7 +11,7 @@ import losses
 import utils
 import os
 import argparse
-
+import numpy as np
 slim = tf.contrib.slim
 
 
@@ -82,11 +82,18 @@ def main(FLAGS):
 
             for layer in FLAGS.style_layers:
                 tf.summary.scalar('style_losses/' + layer, style_loss_summary[layer])
+                output_1 = tf.reshape(endpoints_dict[layer], [0, 64, 64,0])
+                tf.summary.image('endpoints_dict', output_1)
             tf.summary.image('generated', generated)
             # tf.image_summary('processed_generated', processed_generated)  # May be better?
             tf.summary.image('origin', tf.stack([
                 image_unprocessing_fn(image) for image in tf.unstack(processed_images, axis=0, num=FLAGS.batch_size)
             ]))
+            # a = np.array(style_features_t)
+            # print (a.shape)
+            
+            
+            
             summary = tf.summary.merge_all()
             writer = tf.summary.FileWriter(training_path)
 

@@ -98,24 +98,28 @@ def net(image, training):
     # 在图像的上下左右加一些边框  消除边界效应
     image = tf.pad(image, [[0, 0], [10, 10], [10, 10], [0, 0]], mode='REFLECT')
 
-    # 三层卷积
+    # 三层卷积 #4 256 256 3
     with tf.variable_scope('conv1'):
         conv1 = relu(instance_norm(conv2d(image, 3, 32, 9, 1))) 
+    # 4 256 256 32
     with tf.variable_scope('conv2'):
         conv2 = relu(instance_norm(conv2d(conv1, 32, 64, 3, 2)))
+    # 4 128 128 64
     with tf.variable_scope('conv3'):
         conv3 = relu(instance_norm(conv2d(conv2, 64, 128, 3, 2)))
+    # 4 64 64 128
     #仿照残差网络定义一些跳过连接
     with tf.variable_scope('res1'):
         res1 = residual(conv3, 128, 3, 1)
     with tf.variable_scope('res2'):
-        res2 = residual(res1, 128, 3, 1)
+        res2 = residual(res1, 128, 3, 1) 
     with tf.variable_scope('res3'):
         res3 = residual(res2, 128, 3, 1)
     with tf.variable_scope('res4'):
         res4 = residual(res3, 128, 3, 1)
     with tf.variable_scope('res5'):
         res5 = residual(res4, 128, 3, 1)
+    # 4 64 64 128
     # print(res5.get_shape())
 
     # 反卷积
@@ -123,12 +127,15 @@ def net(image, training):
     # 消除噪声
     with tf.variable_scope('deconv1'):
         deconv1 = relu(instance_norm(resize_conv2d(res5, 128, 64, 3, 2, training)))
+    # 4 128 128 64
     with tf.variable_scope('deconv2'):
         deconv2 = relu(instance_norm(resize_conv2d(deconv1, 64, 32, 3, 2, training)))
+    # 4 256 256 32
     with tf.variable_scope('deconv3'):
         # deconv_test = relu(instance_norm(conv2d(deconv2, 32, 32, 2, 1)))
         # deconv3 值域范围-1 1
         deconv3 = tf.nn.tanh(instance_norm(conv2d(deconv2, 32, 3, 9, 1)))
+        # 4 256 256 3
     # 缩放到 0 255 
     y = (deconv3 + 1) * 127.5
 
